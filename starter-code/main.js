@@ -6,19 +6,29 @@
 // each breedName should then be the card-title of the card and the alt of the image (you will get the images in part 2 of the exercise)
 // image src should be empty for now
 
-function getDogs() {
+async function getDogs() {
+  const breedNames = await fetch("https://dog.ceo/api/breeds/list/all");
+  const dataBreedNames = await breedNames.json();
 
-  const breedNames = []
+  const breedNamesArray = Object.keys(dataBreedNames.message);
+  const promises = breedNamesArray.map((breed) => {
+    return fetch(`https://dog.ceo/api/breed/${breed}/images/random`)
+      .then((response) => response.json())
+      .then((data) => {
+        const img = data.message;
+        return `<div class="card" style="max-width: 300px">
+                      <img class="card-img-top" src="${img}" alt="${breed}" height="300px" style="object-fit: cover; object-position: center;">
+                      <div class="card-body">
+                        <h5 class="card-title">${breed}</h5>
+                      </div>
+                    </div>`;
+      });
+  });
 
-  const container = document.querySelector('.container-grid');
-
-  container.innerHTML += `
-    <div class="card" style="max-width: 300px">
-        <img class="card-img-top" src="" alt="-BREED NAME GOES HERE-" height="300px" style="object-fit: cover; object-position: center;">
-        <div class="card-body">
-         <h5 class="card-title">-BREED NAME GOES HERE-</h5>
-        </div>
-    </div>`
+  Promise.all(promises).then((cards) => {
+    const container = document.querySelector(".container-grid");
+    container.innerHTML = cards.join("");
+  });
 }
 
 getDogs();
